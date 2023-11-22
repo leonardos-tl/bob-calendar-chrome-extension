@@ -1,8 +1,15 @@
 import { h } from "preact";
 import { isToday } from "../../utils/calendarUtils";
 
-function CalendarCell({ year, month, date, holidays, isPaddedDate }) {
-  let colourClass = isToday(year, month, date)
+function CalendarCell({
+  year,
+  month,
+  date,
+  holidays,
+  isPaddedDate,
+  isBankHoliday,
+}) {
+  let dateTextColors = isToday(year, month, date)
     ? "bg-red-500 text-white"
     : isPaddedDate
       ? "text-gray-400"
@@ -11,10 +18,13 @@ function CalendarCell({ year, month, date, holidays, isPaddedDate }) {
   return (
     <div
       style="width: 14.28%; height: 120px"
-      className="px-4 pt-2 border-r border-b relative"
+      className={`px-4 pt-2 border-r border-b relative ${
+        !!isBankHoliday ? "bg-orange-100" : ""
+      }`}
+      title={isBankHoliday && isBankHoliday.title}
     >
       <div
-        className={`inline-flex w-6 h-6 items-center justify-center text-center leading-none rounded-full transition ease-in-out duration-100 ${colourClass}`}
+        className={`inline-flex w-6 h-6 items-center justify-center text-center leading-none rounded-full transition ease-in-out duration-100 ${dateTextColors}`}
       >
         {date}
       </div>

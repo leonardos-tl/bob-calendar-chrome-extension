@@ -15,6 +15,8 @@ export const MONTH_NAMES = [
 export const NUMBER_DAY_WEEK = [6, 0, 1, 2, 3, 4, 5];
 export const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+export const PAD = (d) => (d < 10 ? "0" + d.toString() : d.toString());
+
 export const isToday = (year, month, day) => {
   const today = new Date();
   const d = new Date(year, month, day);

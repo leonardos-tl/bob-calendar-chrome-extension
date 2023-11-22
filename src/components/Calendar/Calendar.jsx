@@ -1,6 +1,6 @@
 import { h } from "preact";
 import { useEffect, useState } from "preact/hooks";
-import { getHolidays } from "../../services/holidays";
+import { getBankHolidays, getHolidays } from "../../services/holidays";
 import {
   DAYS,
   getArrayOfCalendarDays,
@@ -8,6 +8,7 @@ import {
   getNextMonth,
   getPrevMonth,
   getStartMonthPadding,
+  PAD,
 } from "../../utils/calendarUtils";
 import CalendarCell from "./CalendarCell";
 import CalendarHeader from "./CalendarHeader";
@@ -16,9 +17,12 @@ const initDate = () => {
   let today = new Date();
   const month = today.getMonth();
   const year = today.getFullYear();
+  const prevDate = getPrevMonth(year, month);
+  const nextDate = getNextMonth(year, month);
   return {
-    month,
-    year,
+    current: { year, month },
+    prev: { ...prevDate },
+    next: { ...nextDate },
     calendarDays: [],
     startPadding: [],
     endPadding: [],
@@ -28,18 +32,12 @@ const initDate = () => {
 function Calendar() {
   const [calendarData, setCalendarData] = useState(initDate());
   const [holidays, setHolidays] = useState([]);
+  const [bankHolidays, setBankHolidays] = useState([]);
+  const { current, prev, next } = calendarData;
 
   const setCalendarCells = () => {
-    const startPadding = getStartMonthPadding(
-      calendarData.year,
-      calendarData.month,
-    );
-
-    const calendarDays = getArrayOfCalendarDays(
-      calendarData.year,
-      calendarData.month,
-    );
-
+    const startPadding = getStartMonthPadding(current.year, current.month);
+    const calendarDays = getArrayOfCalendarDays(current.year, current.month);
     const endPadding = getEndMonthPadding(
       startPadding.length + calendarDays.length,
     );
@@ -53,16 +51,26 @@ function Calendar() {
   };
 
   const goBackOneMonth = () => {
+    const newCurrentDate = getPrevMonth(current.year, current.month);
+    const newPrevDate = getPrevMonth(newCurrentDate.year, newCurrentDate.month);
+    const newNextDate = getNextMonth(newCurrentDate.year, newCurrentDate.month);
     setCalendarData({
       ...calendarData,
-      ...getPrevMonth(calendarData.year, calendarData.month),
+      current: newCurrentDate,
+      prev: newPrevDate,
+      next: newNextDate,
     });
   };
 
   const goForwardOneMonth = () => {
+    const newCurrentDate = getNextMonth(current.year, current.month);
+    const newPrevDate = getPrevMonth(newCurrentDate.year, newCurrentDate.month);
+    const newNextDate = getNextMonth(newCurrentDate.year, newCurrentDate.month);
     setCalendarData({
       ...calendarData,
-      ...getNextMonth(calendarData.year, calendarData.month),
+      current: newCurrentDate,
+      prev: newPrevDate,
+      next: newNextDate,
     });
   };
 
@@ -75,15 +83,22 @@ function Calendar() {
     );
   };
 
+  const isDateBankHoliday = (year, month, date, log) =>
+    bankHolidays.find(
+      (bh) => bh.date === `${year}-${PAD(month + 1)}-${PAD(date)}`,
+    );
+
   useEffect(() => {
     setCalendarCells();
-  }, [calendarData.month]);
+  }, [current.month]);
 
   useEffect(() => {
     (async () => {
       const hols = await getHolidays();
-      console.log("component hols", hols.requests);
       setHolidays(hols.requests);
+
+      const bankHolidays = await getBankHolidays();
+      setBankHolidays(bankHolidays);
     })();
   }, []);
 
@@ -91,8 +106,8 @@ function Calendar() {
     <div class="container mx-auto px-4 py-2">
       <div class="bg-white rounded-lg shadow overflow-hidden">
         <CalendarHeader
-          year={calendarData.year}
-          month={calendarData.month}
+          year={current.year}
+          month={current.month}
           onClickPrev={goBackOneMonth}
           onClickNext={goForwardOneMonth}
         />
@@ -111,13 +126,15 @@ function Calendar() {
             {calendarData.startPadding.map((date, index) => (
               <CalendarCell
                 key={index}
-                year={calendarData.year}
-                month={calendarData.month - 1}
+                year={prev.year}
+                month={prev.month}
                 date={date}
-                holidays={holidaysForDate(
-                  calendarData.year,
-                  calendarData.month - 1,
+                holidays={holidaysForDate(prev.year, prev.month, date)}
+                isBankHoliday={isDateBankHoliday(
+                  prev.year,
+                  prev.month,
                   date,
+                  "WOB",
                 )}
                 isPaddedDate={true}
               />
@@ -125,13 +142,15 @@ function Calendar() {
             {calendarData.calendarDays.map((date, index) => (
               <CalendarCell
                 key={index}
-                year={calendarData.year}
-                month={calendarData.month}
+                year={current.year}
+                month={current.month}
                 date={date}
-                holidays={holidaysForDate(
-                  calendarData.year,
-                  calendarData.month,
+                holidays={holidaysForDate(current.year, current.month, date)}
+                isBankHoliday={isDateBankHoliday(
+                  current.year,
+                  current.month,
                   date,
+                  "WUB",
                 )}
                 isPaddedDate={false}
               />
@@ -139,13 +158,15 @@ function Calendar() {
             {calendarData.endPadding.map((date, index) => (
               <CalendarCell
                 key={index}
-                year={calendarData.year}
-                month={calendarData.month + 1}
+                year={next.year}
+                month={next.month}
                 date={date}
-                holidays={holidaysForDate(
-                  calendarData.year,
-                  calendarData.month + 1,
+                holidays={holidaysForDate(next.year, next.month, date)}
+                isBankHoliday={isDateBankHoliday(
+                  next.year,
+                  next.month,
                   date,
+                  "WIB",
                 )}
                 isPaddedDate={true}
               />

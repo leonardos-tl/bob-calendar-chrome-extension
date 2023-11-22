@@ -19,3 +19,16 @@ export const getHolidays = async () => {
     return Promise.reject(e);
   }
 };
+
+export const getBankHolidays = async (year, month) => {
+  try {
+    const response = await fetch(`https://www.gov.uk/bank-holidays.json`);
+    const data = await response.json();
+    return data["england-and-wales"].events.map(({ date, title }) => ({
+      date,
+      title,
+    }));
+  } catch (e) {
+    return Promise.reject(e);
+  }
+};
