@@ -21,8 +21,8 @@ const initDate = () => {
   const nextDate = getNextMonth(year, month);
   return {
     current: { year, month },
-    prev: { ...prevDate },
-    next: { ...nextDate },
+    prev: prevDate,
+    next: nextDate,
     calendarDays: [],
     startPadding: [],
     endPadding: [],
@@ -83,7 +83,7 @@ function Calendar() {
     );
   };
 
-  const isDateBankHoliday = (year, month, date, log) =>
+  const isDateBankHoliday = (year, month, date) =>
     bankHolidays.find(
       (bh) => bh.date === `${year}-${PAD(month + 1)}-${PAD(date)}`,
     );
@@ -130,12 +130,7 @@ function Calendar() {
                 month={prev.month}
                 date={date}
                 holidays={holidaysForDate(prev.year, prev.month, date)}
-                isBankHoliday={isDateBankHoliday(
-                  prev.year,
-                  prev.month,
-                  date,
-                  "WOB",
-                )}
+                isBankHoliday={isDateBankHoliday(prev.year, prev.month, date)}
                 isPaddedDate={true}
               />
             ))}
@@ -150,7 +145,6 @@ function Calendar() {
                   current.year,
                   current.month,
                   date,
-                  "WUB",
                 )}
                 isPaddedDate={false}
               />
@@ -162,12 +156,7 @@ function Calendar() {
                 month={next.month}
                 date={date}
                 holidays={holidaysForDate(next.year, next.month, date)}
-                isBankHoliday={isDateBankHoliday(
-                  next.year,
-                  next.month,
-                  date,
-                  "WIB",
-                )}
+                isBankHoliday={isDateBankHoliday(next.year, next.month, date)}
                 isPaddedDate={true}
               />
             ))}
